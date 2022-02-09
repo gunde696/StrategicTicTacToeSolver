@@ -8,26 +8,6 @@ isXO = UInt64(9223372036854775808)
 # The second value stores 63 bits of information. In order: 27 for the second row of X boards, 27 for the second row of O boards, and 9 for the big O board.
 # The third value stores 63 bits as well! In order: 27 for the third row of X boards, 27 for the third row of O boards, and 9 for the big CAT board.
 # Only 2 bits are wasted!
-function valueOfBoard(board::Tuple{UInt64, UInt64, UInt64}, lastMove::UInt8)::Int64
-    # uses the emptySpace method to determine the empty spaces and stores the value in emptySpaces. Shocking, right?
-    emptySpaces = emptySpaces(board)
-    # determines if the board that the enemy would be forced to is full
-    if ((board[1] & (1 << (54 + (lastMove % 9)))) | (board[2] & (1 << (54 + (lastMove % 9)))) | (board[3] & (1 << (54 + (lastMove % 9)))) != 0)
-        # loops through every location on the board, as the enemy can play anywhere
-        for location in 0:80
-
-        end
-    # else, the enemy is forced to play in the corresponding section
-    else
-        # only loops through nine locations, the size of the little board
-        for location in (lastMove % 9)*9:(lastMove % 9)*9+9
-
-        end
-    end
-
-
-
-end
 
 # a vector containing the bitmask representation of all possible win conditions
 wincons = UInt16[UInt16(7), UInt16(56), UInt16(448), UInt16(73), UInt16(146), UInt16(292), UInt16(273), UInt16(84)]
@@ -65,18 +45,6 @@ end
 # returns the bits in a certain window from [startIndex, endIndex) in the form of a UInt128
 function subBits128(value::UInt64, startIndex, endIndex)::UInt128
     return UInt128((value % (1 << endIndex)) >> startIndex)
-end
-
-function possibleMoves(board::Tuple{UInt64, UInt64, UInt64})::Vector{Int8}
-    ret = Int8[]
-    for x in 1:3
-        for l in 0:26
-            if ((board[x] >> l) & 1 != 1 && (board[x] >> (l + 27)) & 1 != 1)
-                push!(ret, l + x*27 - 27)
-            end
-        end
-    end
-    return ret
 end
 
 function emptySpaces(board::Tuple{UInt64, UInt64, UInt64})::UInt128
