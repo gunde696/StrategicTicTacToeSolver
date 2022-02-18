@@ -1,6 +1,5 @@
 using SIMD
 
-mod = 27
 isXO = UInt64(9223372036854775808)
 
 # A board is represented as a tuple of (UInt64, UInt64, UInt64).
@@ -66,40 +65,40 @@ function play(board::Tuple{UInt64, UInt64, UInt64}, location)::Tuple{UInt64, UIn
 
         # second, check if the board was cat
         #= if !boardWasWon
-               boardWasCat = (subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9, round(UInt64, location/9, RoundDown)*9 + 9) | subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 + 27, round(UInt64, location/9, RoundDown)*9 + 36)) == 511
+               boardWasCat = (subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9, UInt64(location ÷ 9)*9 + 9) | subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 + 27, UInt64(location ÷ 9)*9 + 36)) == 511
         end =#
 
-        # (1 << round(UInt64, location/9, RoundDown))
+        # (1 << UInt64(location ÷ 9))
 
         # return the board with the correct move played, and possibly a modified won or cat board.
         if isBoardWon((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], board[2], board[3]), location)
             # checks if the game is completely over.
             # uses the high-speed SIMD method to determine if the current players big board contains a winning combo
-            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) : (subBits16(board[2], 54, 63) | (1 << round(UInt64, location/9, RoundDown)))))
+            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << UInt64(location ÷ 9))) : (subBits16(board[2], 54, 63) | (1 << UInt64(location ÷ 9)))))
                 # If a board has been won, returns the maximum value in one spot, and zero in the others.
                 # For X, it returns: (max, 0, 0). For O, it returns: (0, max, 0). For CAT, it returns (0, 0, max)
                 return board[1] & isXO != isXO ? (UInt64(18446744073709551615), UInt64(0), UInt64(0)) : (UInt64(0), UInt64(18446744073709551615), UInt64(0))
             # Checks if the game is CAT by seeing if the 'or' of all three board masks is full.
-            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
 
             # if not, checks if x or o was the player that won the board
             elseif board[1] & isXO != isXO
                 # or's the bitmask of the won board with the first or second board value,
                 # which stores x's and o's won boards, respectively.
-                return (((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO) | (1 << (54 + round(UInt64, location/9, RoundDown))), board[2], board[3])
+                return (((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO) | (1 << (54 + UInt64(location ÷ 9))), board[2], board[3])
             # this is for if o won the board
             else
-                return (((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO), board[2] | (1 << (54 + round(UInt64, location/9, RoundDown))), board[3])
+                return (((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO), board[2] | (1 << (54 + UInt64(location ÷ 9))), board[3])
             end
         # If the board was cat, must store that in the third value of board.
-        elseif (subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9, round(UInt64, location/9, RoundDown)*9 + 9) | subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 + 27, round(UInt64, location/9, RoundDown)*9 + 36)) == 511
+        elseif (subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9, UInt64(location ÷ 9)*9 + 9) | subBits16(board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 + 27, UInt64(location ÷ 9)*9 + 36)) == 511
             # also must check if the whole game is cat due to the board being cat-ed
-            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
             # if not, then return the board as expected with modifications
             else
-                return ((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO, board[2], board[3] | (1 << (54 + round(UInt64, location/9, RoundDown))))
+                return ((board[1] | locations[location + 1 + (board[1] & isXO == isXO ? 27 : 0)]) ⊻ isXO, board[2], board[3] | (1 << (54 + UInt64(location ÷ 9))))
             end
         else
             # board[1] is the only value being modified, as that value contains the spot that is being played on
@@ -114,24 +113,24 @@ function play(board::Tuple{UInt64, UInt64, UInt64}, location)::Tuple{UInt64, UIn
         #boardWasWon = isBoardWon((board[1], board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3]), location)
 
         #=if !boardWasWon
-            boardWasCat = (subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 27, round(UInt64, location/9, RoundDown)*9 - 18) | subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9, round(UInt64, location/9, RoundDown)*9 + 9)) == 511
+            boardWasCat = (subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 27, UInt64(location ÷ 9)*9 - 18) | subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9, UInt64(location ÷ 9)*9 + 9)) == 511
         end=#
 
         if isBoardWon((board[1], board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3]), location)
-            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) : (subBits16(board[2], 54, 63) | (1 << round(UInt64, location/9, RoundDown)))))
+            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << UInt64(location ÷ 9))) : (subBits16(board[2], 54, 63) | (1 << UInt64(location ÷ 9)))))
                 return board[1] & isXO != isXO ? (UInt64(18446744073709551615), UInt64(0), UInt64(0)) : (UInt64(0), UInt64(18446744073709551615), UInt64(0))
-            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
             elseif board[1] & isXO != isXO
-                return ((board[1] ⊻ isXO) | (1 << (54 + round(UInt64, location/9, RoundDown))), board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3])
+                return ((board[1] ⊻ isXO) | (1 << (54 + UInt64(location ÷ 9))), board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3])
             else
-                return ((board[1] ⊻ isXO), board[2] | (1 << (54 + round(UInt64, location/9, RoundDown))) | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3])
+                return ((board[1] ⊻ isXO), board[2] | (1 << (54 + UInt64(location ÷ 9))) | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3])
             end
-        elseif (subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 27, round(UInt64, location/9, RoundDown)*9 - 18) | subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9, round(UInt64, location/9, RoundDown)*9 + 9)) == 511
-            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+        elseif (subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 27, UInt64(location ÷ 9)*9 - 18) | subBits16(board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9, UInt64(location ÷ 9)*9 + 9)) == 511
+            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
             else
-                return (board[1] ⊻ isXO, board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3] | (1 << (54 + round(UInt64, location/9, RoundDown))))
+                return (board[1] ⊻ isXO, board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3] | (1 << (54 + UInt64(location ÷ 9))))
             end
         else
             return (board[1] ⊻ isXO, board[2] | locations[location + 1 - 27 + (board[1] & isXO == isXO ? 27 : 0)], board[3])
@@ -141,24 +140,24 @@ function play(board::Tuple{UInt64, UInt64, UInt64}, location)::Tuple{UInt64, UIn
         #boardWasWon = isBoardWon((board[1], board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)]), location)
 
         #=if !boardWasWon
-            boardWasCat = (subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 54, round(UInt64, location/9, RoundDown)*9 - 45) | subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 27, round(UInt64, location/9, RoundDown)*9 - 18)) == 511
+            boardWasCat = (subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 54, UInt64(location ÷ 9)*9 - 45) | subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 27, UInt64(location ÷ 9)*9 - 18)) == 511
         end=#
 
         if isBoardWon((board[1], board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)]), location)
-            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) : (subBits16(board[2], 54, 63) | (1 << round(UInt64, location/9, RoundDown)))))
+            if isWonSIMD(UInt16(board[1] & isXO != isXO ? (subBits16(board[1], 54, 63) | (1 << UInt64(location ÷ 9))) : (subBits16(board[2], 54, 63) | (1 << UInt64(location ÷ 9)))))
                 return board[1] & isXO != isXO ? (UInt64(18446744073709551615), UInt64(0), UInt64(0)) : (UInt64(0), UInt64(18446744073709551615), UInt64(0))
-            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+            elseif (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
             elseif board[1] & isXO != isXO
-                return ((board[1] ⊻ isXO) | (1 << (54 + round(UInt64, location/9, RoundDown))), board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)])
+                return ((board[1] ⊻ isXO) | (1 << (54 + UInt64(location ÷ 9))), board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)])
             else
-                return ((board[1] ⊻ isXO), board[2] | (1 << (54 + round(UInt64, location/9, RoundDown))), board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)])
+                return ((board[1] ⊻ isXO), board[2] | (1 << (54 + UInt64(location ÷ 9))), board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)])
             end
-        elseif (subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 54, round(UInt64, location/9, RoundDown)*9 - 45) | subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], round(UInt64, location/9, RoundDown)*9 - 27, round(UInt64, location/9, RoundDown)*9 - 18)) == 511
-            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << round(UInt64, location/9, RoundDown))) == 511
+        elseif (subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 54, UInt64(location ÷ 9)*9 - 45) | subBits16(board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)], UInt64(location ÷ 9)*9 - 27, UInt64(location ÷ 9)*9 - 18)) == 511
+            if (subBits16(board[1], 54, 63) | subBits16(board[2], 54, 63) | subBits16(board[3], 54, 63) | (1 << UInt64(location ÷ 9))) == 511
                 return (UInt64(0), UInt64(0), UInt64(18446744073709551615))
             else
-                return (board[1] ⊻ isXO, board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)] | (1 << (54 + round(UInt64, location/9, RoundDown))))
+                return (board[1] ⊻ isXO, board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)] | (1 << (54 + UInt64(location ÷ 9))))
             end
         else
             return (board[1] ⊻ isXO, board[2], board[3] | locations[location + 1 - 54 + (board[1] & isXO == isXO ? 27 : 0)])
@@ -301,8 +300,8 @@ bitStagger = UInt64(2^27)
 # prints the board. Understanding this I will leave as an exercise to the reader.
 function printBoard(board::Tuple{UInt64, UInt64, UInt64})
     println("The Whole Board")
-    for row in 1:3
-        for spotIndex in 1:27
+    for row in [1:3;]
+        for spotIndex in [1:27;]
             if board[row] & orderOfXSpots[spotIndex] == orderOfXSpots[spotIndex]
                 print(" x ")
             elseif (board[row] & orderOfOSpots[spotIndex]) == orderOfOSpots[spotIndex]
@@ -328,7 +327,7 @@ function printBoard(board::Tuple{UInt64, UInt64, UInt64})
     println("Bitstring of O: $(bitstring(oBoard))")
     catBoard = subBits16(board[3], 54, 63)
     println("Bitstring of CAT: $(bitstring(catBoard))")
-    for x in 0:8
+    for x in [0:8;]
         boardLocation = 1 << x
         if (xBoard & boardLocation == boardLocation)
             print(" x")
@@ -350,7 +349,7 @@ function printBoard(board::Tuple{UInt64, UInt64, UInt64})
     end
 end
 
-println("Begin:")
+print("Begin:")
 @time board = (UInt64(0), UInt64(0), UInt64(0))
 
 board = play(board, 0)
@@ -409,8 +408,6 @@ board = play(board, 19)
 board = play(board, 73)
 board = play(board, 20)=#
 
-print("Possible Moves: ")
-@time possibleMoves(board)
 print("Empty Spaces: ")
 @time emptySpaces(board)
 print("Is Ended: ")
