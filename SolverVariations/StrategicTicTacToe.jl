@@ -352,7 +352,8 @@ end
 print("Begin:")
 @time board = (UInt64(0), UInt64(0), UInt64(0))
 
-board = play(board, 0)
+# This set of moves tests to see if winning and catting boards gets registered correctly
+#=board = play(board, 0)
 board = play(board, 1)
 board = play(board, 2)
 board = play(board, 3)
@@ -387,8 +388,9 @@ board = play(board, 77)
 board = play(board, 76)
 board = play(board, 78)
 board = play(board, 80)
-board = play(board, 79)
+board = play(board, 79)=#
 
+# This set of moves tests to see if random moves get registered correctly
 #=board = play(board, 25)
 board = play(board, 0)
 board = play(board, 80)
@@ -407,6 +409,64 @@ board = play(board, 74)
 board = play(board, 19)
 board = play(board, 73)
 board = play(board, 20)=#
+
+# This set of moves tests to see if winning the game is registered
+#=board = play(board, 0)
+board = play(board, 27)
+board = play(board, 1)
+board = play(board, 28)
+board = play(board, 2)
+board = play(board, 29)
+
+board = play(board, 9)
+board = play(board, 71)
+board = play(board, 10)
+board = play(board, 72)
+board = play(board, 11)
+board = play(board, 73)
+
+board = play(board, 18)
+board = play(board, 53)
+board = play(board, 19)
+board = play(board, 54)
+board = play(board, 20)
+board = play(board, 55)=#
+
+# This set of moves tests to see if catting the game gets registered
+#=board = play(board, 0)
+board = play(board, 9)
+board = play(board, 1)
+board = play(board, 10)
+board = play(board, 2)
+board = play(board, 11)
+
+board = play(board, 18)
+board = play(board, 27)
+board = play(board, 19)
+board = play(board, 28)
+board = play(board, 20)
+board = play(board, 29)
+
+board = play(board, 45)
+board = play(board, 36)
+board = play(board, 46)
+board = play(board, 37)
+board = play(board, 47)
+board = play(board, 38)
+
+board = play(board, 54)
+board = play(board, 72)
+board = play(board, 55)
+board = play(board, 73)
+board = play(board, 56)
+board = play(board, 74)
+
+board = play(board, 63)
+board = play(board, 66)
+board = play(board, 64)
+board = play(board, 67)
+board = play(board, 65)=#
+
 
 print("Empty Spaces: ")
 @time emptySpaces(board)
