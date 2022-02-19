@@ -165,6 +165,17 @@ function play(board::Tuple{UInt64, UInt64, UInt64}, location)::Tuple{UInt64, UIn
     end
 end
 
+# Play many moves in a row given a board and a tuple of locations. Returns the final board state after all the moves
+function playMany(board::Tuple{UInt64, UInt64, UInt64}, locations)::Tuple{UInt64, UInt64, UInt64}
+    # Loops through every location to be played at
+    for location in locations
+        # Plays at that location, stores it in board again
+        board = play(board, location)
+    end
+    # Returns the final board
+    return board
+end
+
 # the bitmasks corresponding to the locations of the boards, IE, the first board (Top-Left), the second board (Top-Middle), and so on
 bigBoardMasks = (UInt64(18014398509481984), UInt64(36028797018963968), UInt64(72057594037927936), UInt64(144115188075855872), UInt64(288230376151711740), UInt64(576460752303423490), UInt64(1152921504606846980), UInt64(2305843009213694000), UInt64(4611686018427387900))
 # Checks if x or o has won the board they are playing on
