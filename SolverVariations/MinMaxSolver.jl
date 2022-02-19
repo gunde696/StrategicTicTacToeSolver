@@ -1,6 +1,5 @@
 using SIMD
 
-mod = 27
 isXO = UInt64(9223372036854775808)
 
 # A board is represented as a tuple of (UInt64, UInt64, UInt64).
@@ -483,7 +482,7 @@ board = play(board, 72)
 board = play(board, 55)
 board = play(board, 73)
 board = play(board, 56)
-#board = play(board, 74)
+board = play(board, 74)
 # Do not comment out any of these plays, as the program will take far too long to run then.
 
 # This block of plays allows O to win
