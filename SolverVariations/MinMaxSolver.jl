@@ -382,7 +382,7 @@ function valueOfBoard(board::Tuple{UInt64, UInt64, UInt64}, lastMove::UInt8, num
             bestValue = -82
         end
 
-        for location in (lastMove % 9)*9:(lastMove % 9)*9+9
+        for location in (lastMove % 9)*9:(lastMove % 9)*9+8
             # If just the current spot is full, skip ahead one spot
             if emptySpace & (UInt128(1) << (location)) != 0
                 location = location + 1
